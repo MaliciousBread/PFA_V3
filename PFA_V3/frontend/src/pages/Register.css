@@ -1,0 +1,163 @@
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+}
+
+.register-left {
+  flex: 1;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--border);
+}
+
+.register-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.logo-icon-large {
+  background: var(--primary);
+  color: white;
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
+
+.register-brand h1 {
+  font-size: 2rem;
+}
+
+.register-brand h1 span {
+  color: var(--primary);
+}
+
+.register-side-text h2 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.register-side-text p {
+  color: var(--text-muted);
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.register-footer {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.register-right {
+  flex: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 3rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.register-header h2 {
+  font-size: 1.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.register-header p {
+  color: var(--text-muted);
+}
+
+.register-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.register-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.select-group label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.select-group select {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+}
+
+.register-login {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.register-login a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.field-icon {
+  position: absolute;
+  left: 1rem;
+  top: 42px;
+  color: var(--text-muted);
+  z-index: 1;
+}
+
+.input-with-icon .input {
+  padding-left: 3rem;
+}
+
+@media (max-width: 1024px) {
+  .register-left {
+    display: none;
+  }
+
+  .register-grid {
+    grid-template-columns: 1fr;
+  }
+}

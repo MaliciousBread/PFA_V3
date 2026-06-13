@@ -1,0 +1,17 @@
+django>=4.2
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+mysqlclient
+pillow
+opencv-python-headless
+pytesseract
+easyocr
+langchain
+langchain-openai
+faiss-cpu
+openai
+celery
+redis
+python-dotenv
+scikit-learn

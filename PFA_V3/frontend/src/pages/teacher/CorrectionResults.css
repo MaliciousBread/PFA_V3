@@ -1,0 +1,248 @@
+.correction-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-summary {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 1.5rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-item span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.score-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  color: var(--primary);
+}
+
+.score-val .max {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.split-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  height: calc(100vh - 250px);
+  min-height: 600px;
+}
+
+.view-left {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.image-viewer-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.image-container {
+  flex: 1;
+  background: #1e293b;
+  position: relative;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mock-scan-image {
+  width: 90%;
+  height: 90%;
+  background: white;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-placeholder-text {
+  color: #cbd5e1;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ocr-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ocr-box {
+  position: absolute;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.ocr-box.highlight {
+  border: 2px solid var(--primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.view-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.results-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.question-result-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.q-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.q-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+}
+
+.q-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.ocr-content {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  border: 1px solid var(--border);
+}
+
+.feedback-content {
+  display: flex;
+  gap: 1rem;
+  background: rgba(16, 185, 129, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.feedback-icon {
+  color: var(--accent);
+  margin-top: 0.25rem;
+}
+
+.score-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.score-section .label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.auto-score .val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.input-with-max {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-with-max .input {
+  width: 80px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.max-tag {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1200px) {
+  .split-view {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .view-left {
+    height: 400px;
+  }
+}
