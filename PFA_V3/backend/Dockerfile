@@ -4,8 +4,9 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_DEFAULT_TIMEOUT=100 \
     PIP_PROGRESS_BAR=off
 
-# Install system dependencies (OpenCV + Tesseract)
+
 RUN apt-get update && apt-get install -y \
+    poppler-utils \
     tesseract-ocr \
     tesseract-ocr-fra \
     tesseract-ocr-eng \

@@ -48,6 +48,18 @@ class StudentCopyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # The clean, Django-native way to delete the physical file
+        if instance.file:
+            instance.file.delete(save=False) 
+                
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
     def process(self, request, pk=None):
         if not request.user.is_teacher():
             return Response({"error": "Only teachers can trigger processing"}, status=status.HTTP_403_FORBIDDEN)

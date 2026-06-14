@@ -3,6 +3,8 @@ from .models import StudentCopy, StudentAnswer
 from ocr.services import OCRService
 from rag.services import RAGGradingService
 import os
+from pdf2image import convert_from_path
+import tempfile
 
 @shared_task
 def process_student_copy_task(copy_id):

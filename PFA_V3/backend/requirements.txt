@@ -15,3 +15,5 @@ celery
 redis
 python-dotenv
 scikit-learn
+groq
+pdf2image
