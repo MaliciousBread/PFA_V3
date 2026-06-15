@@ -1,10 +1,7 @@
 from celery import shared_task
 from .models import Exam, Question, AnswerKey
-from ocr.services import OCRService
 from rag.services import RAGGradingService
-import os
-import pytesseract
-from PIL import Image
+import easyocr
 
 @shared_task
 def process_exam_reference_task(exam_id):
@@ -13,33 +10,30 @@ def process_exam_reference_task(exam_id):
         exam.status = 'processing'
         exam.save()
         
-        # 1. OCR Extraction
-        ocr_service = OCRService()
+        print(f"[{exam_id}] Extraction OCR du sujet et corrigé de référence (Images)...")
+        reader = easyocr.Reader(['fr', 'en'], gpu=False)
         
         subject_text = ""
         reference_text = ""
         
-        # Extract text from subject file if exists
+        # Lecture directe des images
         if exam.subject_file:
-            img = Image.open(exam.subject_file.path)
-            subject_text = pytesseract.image_to_string(img, lang='fra+eng')
+            sub_res = reader.readtext(exam.subject_file.path, detail=0)
+            subject_text = " ".join(sub_res)
             
-        # Extract text from reference file if exists
         if exam.reference_file:
-            img = Image.open(exam.reference_file.path)
-            reference_text = pytesseract.image_to_string(img, lang='fra+eng')
+            ref_res = reader.readtext(exam.reference_file.path, detail=0)
+            reference_text = " ".join(ref_res)
 
-        # Combine or handle separately
         combined_text = f"SUBJECT:\n{subject_text}\n\nCORRIGÉ/REFERENCE:\n{reference_text}"
+        
+        if not combined_text.strip() or combined_text == "SUBJECT:\n\n\nCORRIGÉ/REFERENCE:\n":
+             raise ValueError("Aucun texte lisible n'a pu être extrait des images.")
 
-        # 2. LLM Parsing
         rag_service = RAGGradingService()
-        # We might need a more specialized prompt if we have two separate texts
         parsed_data = rag_service.parse_exam_reference(combined_text)
         
         questions_data = parsed_data.get("questions", [])
-        
-        # Delete existing questions if any
         exam.questions.all().delete()
         
         for q_data in questions_data:
@@ -61,14 +55,15 @@ def process_exam_reference_task(exam_id):
                 ak.embedding_vector = rag_service.embed_answer_key(ak.reference_answer, ak.keywords)
                 ak.save()
             except Exception as e:
-                print(f"Embedding error: {e}")
+                print(f"Erreur d'embedding: {e}")
 
         exam.status = 'done'
-        exam.processing_log = f"Extracted {len(questions_data)} questions successfully."
+        exam.processing_log = f"Succès : {len(questions_data)} questions extraites."
         exam.save()
+        print(f"[{exam_id}] Barème créé ! {len(questions_data)} questions enregistrées.")
         
     except Exception as e:
-        print(f"Error processing exam reference {exam_id}: {e}")
+        print(f"Erreur lors du traitement de l'examen {exam_id}: {e}")
         try:
             exam = Exam.objects.get(id=exam_id)
             exam.status = 'error'
