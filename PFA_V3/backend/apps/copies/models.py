@@ -15,6 +15,20 @@ class StudentCopy(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    # -- NOUVELLES PROPRIÉTÉS DE CALCUL --
+    @property
+    def raw_total_score(self):
+        # La somme brute des points gagnés par l'étudiant
+        return sum(a.final_score or 0 for a in self.answers.all())
+        
+    @property
+    def exam_total_points(self):
+        return sum(q.max_points for q in self.exam.questions.all())
+
+    @property
+    def grade_out_of_20(self):
+        return round(min(self.raw_total_score, 20.0), 2)
+
     def __str__(self):
         return f"Copy of {self.student.username} for {self.exam.title}"
 

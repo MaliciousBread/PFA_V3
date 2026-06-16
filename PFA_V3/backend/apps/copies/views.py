@@ -52,8 +52,8 @@ class StudentCopyViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         
         # The clean, Django-native way to delete the physical file
-        if instance.file:
-            instance.file.delete(save=False) 
+        if instance.scan_file:
+            instance.scan_file.delete(save=False) 
                 
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)

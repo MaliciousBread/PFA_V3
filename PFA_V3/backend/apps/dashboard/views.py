@@ -2,9 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from exams.models import Exam
-from copies.models import StudentCopy, StudentAnswer
-from django.db.models import Avg, Count
-import statistics
+from copies.models import StudentCopy
 
 class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -14,43 +12,43 @@ class DashboardStatsView(APIView):
             return Response({"error": "Only teachers can view dashboard stats"}, status=403)
         
         if exam_id:
-            try:
-                exam = Exam.objects.get(id=exam_id, teacher=request.user)
-                copies = StudentCopy.objects.filter(exam=exam, status='done')
-                answers = StudentAnswer.objects.filter(copy__in=copies)
-                
-                # Calculate scores per copy
-                copy_scores = []
-                for copy in copies:
-                    score = sum([a.final_score for a in copy.answers.all() if a.final_score is not None])
-                    copy_scores.append(score)
-                
-                if copy_scores:
-                    avg_score = sum(copy_scores) / len(copy_scores)
-                    median_score = statistics.median(copy_scores)
-                else:
-                    avg_score = 0
-                    median_score = 0
-                
-                # Grade distribution
-                distribution = {}
-                for score in copy_scores:
-                    bucket = f"{int(score)}-{int(score)+1}"
-                    distribution[bucket] = distribution.get(bucket, 0) + 1
-
-                return Response({
-                    "total_copies": copies.count(),
-                    "average_score": avg_score,
-                    "median_score": median_score,
-                    "distribution": distribution
-                })
-            except Exam.DoesNotExist:
-                return Response({"error": "Exam not found"}, status=404)
+            exams = Exam.objects.filter(id=exam_id, teacher=request.user)
         else:
-            # General stats for all exams
             exams = Exam.objects.filter(teacher=request.user)
-            total_copies = StudentCopy.objects.filter(exam__in=exams).count()
-            return Response({
-                "total_exams": exams.count(),
-                "total_copies": total_copies,
-            })
+
+        if not exams.exists() and exam_id:
+            return Response({"error": "Exam not found"}, status=404)
+
+        all_copies = StudentCopy.objects.filter(exam__in=exams)
+        completed_copies = all_copies.filter(status='done')
+        
+        # MAGIE : Plus besoin de calculer manuellement, on utilise notre nouvelle propriété !
+        copy_scores = [copy.grade_out_of_20 for copy in completed_copies]
+        
+        if copy_scores:
+            avg_score = round(sum(copy_scores) / len(copy_scores), 2)
+            success_count = sum(1 for s in copy_scores if s >= 10)
+            success_rate = round((success_count / len(copy_scores)) * 100, 1)
+        else:
+            avg_score = 0
+            success_rate = 0
+        
+        distribution = {"0-5": 0, "5-10": 0, "10-15": 0, "15-20": 0}
+        for s in copy_scores:
+            if s < 5: distribution["0-5"] += 1
+            elif s < 10: distribution["5-10"] += 1
+            elif s < 15: distribution["10-15"] += 1
+            else: distribution["15-20"] += 1
+
+        return Response({
+            "total_exams": exams.count(),
+            "total_copies": all_copies.count(),
+            "average_score": avg_score,
+            "success_rate": success_rate,
+            "distribution": [
+                {"name": "0-5", "count": distribution["0-5"]},
+                {"name": "5-10", "count": distribution["5-10"]},
+                {"name": "10-15", "count": distribution["10-15"]},
+                {"name": "15-20", "count": distribution["15-20"]}
+            ]
+        })

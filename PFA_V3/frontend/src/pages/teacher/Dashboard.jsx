@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  FileText, 
-  CheckCircle, 
+import {
+  Users,
+  FileText,
+  CheckCircle,
   TrendingUp,
   Clock,
   ExternalLink,
-  Loader2
+  Loader2,
+  Trash2 // <-- Nouvel icône pour la suppression
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell
 } from 'recharts';
@@ -29,38 +30,62 @@ const Dashboard = () => {
   const [recentCopies, setRecentCopies] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const stats = [
-    { label: 'Total Copies', value: '0', icon: <FileText size={24} />, trend: '+0%', color: '#6366f1' },
-    { label: 'Score Moyen', value: '0/20', icon: <TrendingUp size={24} />, trend: '+0%', color: '#10b981' },
-    { label: 'Taux de Réussite', value: '0%', icon: <CheckCircle size={24} />, trend: '+0%', color: '#f59e0b' },
-  ];
-
-  const chartData = [
-    { name: '0-5', count: 0 },
-    { name: '5-10', count: 0 },
-    { name: '10-15', count: 0 },
-    { name: '15-20', count: 0 },
-  ];
+  // Nouvel état pour stocker les vraies statistiques du backend
+  const [dashboardStats, setDashboardStats] = useState({
+    total_copies: 0,
+    average_score: 0,
+    success_rate: 0,
+    distribution: [
+      { name: '0-5', count: 0 },
+      { name: '5-10', count: 0 },
+      { name: '10-15', count: 0 },
+      { name: '15-20', count: 0 },
+    ]
+  });
 
   const COLORS = ['#ef4444', '#f59e0b', '#6366f1', '#10b981'];
 
+  // Fonction pour recharger les données
+  const fetchDashboardData = async () => {
+    try {
+      const [examsRes, copiesRes, statsRes] = await Promise.all([
+        api.get('/exams/'),
+        api.get('/copies/'),
+        api.get('/dashboard/stats/') // <-- Appel de notre nouvelle API !
+      ]);
+      setExams(examsRes.data);
+      setRecentCopies(copiesRes.data);
+      setDashboardStats(statsRes.data);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [examsRes, copiesRes] = await Promise.all([
-          api.get('/exams/'),
-          api.get('/copies/')
-        ]);
-        setExams(examsRes.data);
-        setRecentCopies(copiesRes.data);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchDashboardData();
   }, []);
+
+  // Fonction pour supprimer une copie
+  const handleDelete = async (copyId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cette copie ?")) return;
+    try {
+      await api.delete(`/copies/${copyId}/`);
+      // Rafraîchit les stats et la table après la suppression
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Erreur lors de la suppression:", err);
+      alert("Impossible de supprimer la copie.");
+    }
+  };
+
+  // Injection des vraies valeurs dans les cartes
+  const stats = [
+    { label: 'Total Copies', value: dashboardStats.total_copies.toString(), icon: <FileText size={24} />, trend: '', color: '#6366f1' },
+    { label: 'Score Moyen', value: `${dashboardStats.average_score}/20`, icon: <TrendingUp size={24} />, trend: '', color: '#10b981' },
+    { label: 'Taux de Réussite', value: `${dashboardStats.success_rate}%`, icon: <CheckCircle size={24} />, trend: '', color: '#f59e0b' },
+  ];
 
   return (
     <div className="dashboard-wrapper fade-in">
@@ -92,21 +117,21 @@ const Dashboard = () => {
         <Card title="Distribution des Notes" subtitle="Performance globale" className="chart-card">
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
+              <BarChart data={dashboardStats.distribution}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
-                <Tooltip 
+                <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  contentStyle={{ 
-                    backgroundColor: '#1e293b', 
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
                     borderColor: 'rgba(255,255,255,0.1)',
                     borderRadius: '8px',
                     color: '#f8fafc'
                   }}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
+                  {dashboardStats.distribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
@@ -118,63 +143,74 @@ const Dashboard = () => {
         <Card title="Copies Récemment Analysées" subtitle="Suivez les résultats de vos étudiants" className="table-card">
           <div className="table-wrapper">
             {loading ? (
-                <div className="loading-state">
-                    <Loader2 className="animate-spin" size={32} />
-                    <span>Chargement des données...</span>
-                </div>
+              <div className="loading-state">
+                <Loader2 className="animate-spin" size={32} />
+                <span>Chargement des données...</span>
+              </div>
             ) : (
-                <table className="custom-table">
-                  <thead>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Étudiant</th>
+                    <th>Examen</th>
+                    <th>Statut</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentCopies.length === 0 ? (
                     <tr>
-                      <th>Étudiant</th>
-                      <th>Examen</th>
-                      <th>Statut</th>
-                      <th>Action</th>
+                      <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                        Aucune copie trouvée.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {recentCopies.length === 0 ? (
-                        <tr>
-                            <td colSpan="4" style={{textAlign: 'center', padding: '2rem', color: 'var(--text-muted)'}}>
-                                Aucune copie trouvée.
-                            </td>
-                        </tr>
-                    ) : (
-                        recentCopies.map(copy => (
-                          <tr key={copy.id}>
-                            <td>
-                              <div className="exam-cell">
-                                <span className="exam-title">{copy.student_name}</span>
-                                <span className="exam-date">{new Date(copy.uploaded_at).toLocaleDateString()}</span>
-                              </div>
-                            </td>
-                            <td><Badge variant="outline">{copy.exam_title}</Badge></td>
-                            <td>
-                              <Badge status={
-                                copy.status === 'done' ? 'success' : 
-                                copy.status === 'processing' ? 'warning' : 
+                  ) : (
+                    recentCopies.map(copy => (
+                      <tr key={copy.id}>
+                        <td>
+                          <div className="exam-cell">
+                            <span className="exam-title">{copy.student_name || `Étudiant #${copy.student}`}</span>
+                            <span className="exam-date">{new Date(copy.uploaded_at || copy.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </td>
+                        <td><Badge variant="outline">{copy.exam_title || `Examen #${copy.exam}`}</Badge></td>
+                        <td>
+                          <Badge status={
+                            copy.status === 'done' ? 'success' :
+                              copy.status === 'processing' ? 'warning' :
                                 copy.status === 'error' ? 'error' : 'default'
-                              }>
-                                {copy.status === 'done' ? 'Corrigé' : 
-                                 copy.status === 'processing' ? 'Analyse...' : 
-                                 copy.status === 'pending' ? 'En attente' : 'Erreur'}
-                              </Badge>
-                            </td>
-                            <td>
-                              <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                icon={<ExternalLink size={14} />}
-                                onClick={() => navigate(`/copies/${copy.id}/results`)}
-                              >
-                                Voir
-                              </Button>
-                            </td>
-                          </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
+                          }>
+                            {copy.status === 'done' ? 'Corrigé' :
+                              copy.status === 'processing' ? 'Analyse...' :
+                                copy.status === 'pending' ? 'En attente' : 'Erreur'}
+                          </Badge>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              icon={<ExternalLink size={14} />}
+                              onClick={() => navigate(`/copies/${copy.id}/results`)}
+                            >
+                              Voir
+                            </Button>
+                            {/* Bouton de suppression */}
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              icon={<Trash2 size={14} />}
+                              onClick={() => handleDelete(copy.id)}
+                              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+                            >
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             )}
           </div>
         </Card>
